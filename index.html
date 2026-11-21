@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ദർസ് ഡെയിലി ക്വിസ് (Dars Daily Quiz Portal)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Manjari:wght@400;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #6366f1;
+            --dark: #0f172a;
+            --light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Poppins', 'Manjari', sans-serif;
+            background-color: #f1f5f9;
+            color: #334155;
+            user-select: none;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #059669, #0d9488);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-custom {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+            background: #ffffff;
+        }
+
+        .btn-custom-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            padding: 10px 20px;
+        }
+
+        .btn-custom-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #047857);
+            color: white;
+        }
+
+        .timer-badge {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: #ef4444;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 14px 20px;
+            margin-bottom: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+            background: #ecfdf5;
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary-dark);
+            background: #d1fae5;
+            font-weight: 600;
+        }
+
+        .topper-card {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-left: 5px solid #f59e0b;
+        }
+
+        .streak-fire {
+            color: #f97316;
+            font-weight: 700;
+        }
+
+        .badge-cat {
+            background-color: #e0e7ff;
+            color: #3730a3;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .hide { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navbar -->
+    <nav class="navbar navbar-dark py-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="#">
+                <i class="bi bi-journal-check fs-3"></i>
+                <span>ദർസ് ഡെയിലി ക്വിസ് (Dars Quiz)</span>
+            </a>
+            <div id="userInfoHeader" class="text-white hide">
+                <span id="headerStudentName" class="fw-bold me-2"></span>
+                <span id="headerCategory" class="badge bg-light text-dark me-2"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+            </div>
+            <button id="adminLoginNavBtn" class="btn btn-light btn-sm fw-bold" onclick="showAdminLoginModal()">Admin Login</button>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- View 1: Student Login Screen -->
+        <div id="loginSection" class="row justify-content-center py-5">
+            <div class="col-md-6 col-lg-5">
+                <div class="card card-custom p-4 text-center">
+                    <div class="mb-3">
+                        <i class="bi bi-person-bounding-box text-success display-4"></i>
+                    </div>
+                    <h4 class="fw-bold mb-3">ക്വിസ് ലോഗിൻ (Student Portal)</h4>
+                    <p class="text-muted small">നിങ്ങൾക്ക് നൽകിയ Student ID നൽകി ലോഗിൻ ചെയ്യുക (Eg: ST001)</p>
+                    
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control text-uppercase" id="studentIdInput" placeholder="ST001">
+                        <label for="studentIdInput">Student ID</label>
+                    </div>
+
+                    <button class="btn btn-custom-primary w-100 py-2 mb-3" onclick="loginStudent()">പരീക്ഷ ആരംഭിക്കുക</button>
+                    
+                    <div id="loginError" class="alert alert-danger p-2 hide"></div>
+                </div>
+
+                <!-- Daily Category Toppers Section -->
+                <div class="mt-4">
+                    <h5 class="fw-bold mb-3 text-center"><i class="bi bi-trophy-fill text-warning me-1"></i> ഈ ആഴ്ചയിലെ ടോപ്പർമാർ</h5>
+                    <div class="row g-2" id="toppersContainer">
+                        <!-- Dynamically filled -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 2: Quiz Engine Screen -->
+        <div id="quizSection" class="row justify-content-center hide">
+            <div class="col-md-8">
+                <!-- Top Status Bar -->
+                <div class="card card-custom p-3 mb-3 d-flex flex-row justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0 fw-bold" id="quizStudentName"></h6>
+                        <small class="text-muted" id="quizStudentMeta"></small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history text-danger fs-5"></i>
+                        <span id="timerBadge" class="timer-badge">05:00</span>
+                    </div>
+                </div>
+
+                <!-- Anti Cheat Alert Banner -->
+                <div id="warningBanner" class="alert alert-warning py-2 text-center hide">
+                    <small class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> ശ്രദ്ധിക്കുക: വിൻഡോ മാറിയാൽ പരീക്ഷ താനേ സബ്മിറ്റ് ആകും!</small>
+                </div>
+
+                <!-- Question Card -->
+                <div class="card card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-secondary" id="questionTracker">ചോദ്യം 1 / 10</span>
+                        <span class="badge bg-success" id="questionPoints">മാർക്ക്: 2.5</span>
+                    </div>
+
+                    <h5 id="questionText" class="fw-bold mb-4" style="line-height: 1.6;"></h5>
+
+                    <div id="optionsContainer">
+                        <!-- Options generated dynamically -->
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <button class="btn btn-outline-secondary" id="prevBtn" onclick="prevQuestion()" disabled>മുന്നത്തെ ചോദ്യം</button>
+                        <button class="btn btn-custom-primary" id="nextBtn" onclick="nextQuestion()">അടുത്ത ചോദ്യം</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 3: Result Submission Success Screen -->
+        <div id="resultSection" class="row justify-content-center py-5 hide">
+            <div class="col-md-6 text-center">
+                <div class="card card-custom p-5">
+                    <i class="bi bi-check-circle-fill text-success display-1 mb-3"></i>
+                    <h3 class="fw-bold">പരീക്ഷ വിജയകരമായി പൂർത്തിയായി!</h3>
+                    <p class="text-muted">നിങ്ങളുടെ ഉത്തരങ്ങൾ സിസ്റ്റത്തിൽ സേവ് ചെയ്തിട്ടുണ്ട്.</p>
+                    <div class="alert alert-info my-3">
+                        വാരാന്ത്യ ഫലങ്ങളും റാങ്ക് ലിസ്റ്റും അഡ്മിൻ പാനൽ വഴി പ്രസിദ്ധീകരിക്കുന്നതാണ്.
+                    </div>
+                    <button class="btn btn-outline-primary mt-2" onclick="logout()">Home Page ലേക്ക് മടങ്ങുക</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 4: Admin Control Panel -->
+        <div id="adminSection" class="hide">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold"><i class="bi bi-speedometer2 me-2"></i>അഡ്മിൻ മാനേജ്‌മെന്റ് പാനൽ</h3>
+                <div>
+                    <button class="btn btn-danger btn-sm" onclick="clearSubmissions()">Daily Quiz Reset (ക്ലിയർ സബ്മിഷൻസ്)</button>
+                    <button class="btn btn-secondary btn-sm" onclick="logout()">Logout</button>
+                </div>
+            </div>
+
+            <!-- Configuration Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card card-custom p-3">
+                        <h6 class="fw-bold"><i class="bi bi-gear-fill me-1"></i> ക്വിസ് ക്രമീകരണങ്ങൾ (Settings)</h6>
+                        <div class="row g-2 mt-1">
+                            <div class="col-6">
+                                <label class="small text-muted">പരീക്ഷാ സമയം (മിനിറ്റിൽ)</label>
+                                <input type="number" id="settingTimeLimit" class="form-control" value="5">
+                            </div>
+                            <div class="col-6">
+                                <label class="small text-muted">ആകെ മാർക്ക്</label>
+                                <input type="number" id="settingTotalMarks" class="form-control" value="25">
+                            </div>
+                            <div class="col-12 mt-2">
+                                <label class="small text-muted">Google Sheets Webhook URL (ഓപ്ഷണൽ)</label>
+                                <input type="text" id="settingWebhookUrl" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+                            </div>
+                            <div class="col-12 mt-2">
+                                <button class="btn btn-sm btn-success" onclick="saveAdminSettings()">Save Settings</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card card-custom p-3">
+                        <h6 class="fw-bold"><i class="bi bi-file-earmark-arrow-up-fill me-1"></i> Bulk Question Import (ചോദ്യങ്ങൾ പേസ്റ്റ് ചെയ്യുക)</h6>
+                        <textarea id="bulkImportText" class="form-control mt-2" rows="3" placeholder="1. ചോദ്യം?&#10;A) ഓപ്ഷൻ 1&#10;B) ഓപ്ഷൻ 2&#10;C) ഓപ്ഷൻ 3&#10;D) ഓപ്ഷൻ 4&#10;Ans: C"></textarea>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="processBulkImport()">Import Questions</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Student Marks Table -->
+            <div class="card card-custom p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">വിദ്യാർത്ഥികളുടെ ക്വിസ് റിസൾട്ട് (Live Submissions)</h5>
+                    <div>
+                        <select id="filterCategory" class="form-select form-select-sm" onchange="renderAdminResults()">
+                            <option value="ALL">എല്ലാ കാറ്റഗറിയും</option>
+                            <option value="Senior">Senior</option>
+                            <option value="Junior">Junior</option>
+                            <option value="Sub Junior">Sub Junior</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Student ID</th>
+                                <th>പേര്</th>
+                                <th>Category</th>
+                                <th>Team</th>
+                                <th>Batch</th>
+                                <th>മാർക്ക് (25-ൽ)</th>
+                                <th>എടുത്ത സമയം</th>
+                                <th>തീരുമാനം</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="modal fade" id="adminModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-custom p-3">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">അഡ്മിൻ ലോഗിൻ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="adminUser" class="form-control mb-2" placeholder="Admin Username">
+                    <input type="password" id="adminPass" class="form-control mb-3" placeholder="Admin Password">
+                    <button class="btn btn-custom-primary w-100" onclick="loginAdmin()">Login</button>
+                    <div id="adminLoginError" class="alert alert-danger p-2 mt-2 hide"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Database of 28 Students
+        const studentsList = [
+            { id: "ST001", name: "MUHAMMED RAFI", category: "Senior", team: "Fatih's Force", batch: "Batch A" },
+            { id: "ST002", name: "AHAMMED KABEER", category: "Senior", team: "Cordoba Knights", batch: "Batch A" },
+            { id: "ST003", name: "LUKHMAN.VK", category: "Senior", team: "Fatih's Force", batch: "Batch B" },
+            { id: "ST004", name: "MUHAMMED.K", category: "Senior", team: "Samarqand Avengers", batch: "Batch B" },
+            { id: "ST005", name: "MUHAMMED FASALURAHMAN.P", category: "Senior", team: "Baghdad Gild", batch: "Batch B" },
+            { id: "ST006", name: "MUHAMMED FADHAL.P", category: "Junior", team: "Baghdad Gild", batch: "Batch C" },
+            { id: "ST007", name: "MUHAMMED SHAMMAS.N", category: "Junior", team: "Baghdad Gild", batch: "Batch C" },
+            { id: "ST008", name: "MUHAMMED MIDLAJ.N", category: "Junior", team: "Cordoba Knights", batch: "Batch C" },
+            { id: "ST009", name: "MUHAMMED RAEES.TK", category: "Junior", team: "Samarqand Avengers", batch: "Batch C" },
+            { id: "ST010", name: "MUHAMMED RABEEH.MT", category: "Junior", team: "Samarqand Avengers", batch: "Batch D" },
+            { id: "ST011", name: "MUHAMMED THWAYYIB", category: "Junior", team: "Cordoba Knights", batch: "Batch D" },
+            { id: "ST012", name: "MUHAMMED SINAN.NC", category: "Junior", team: "Samarqand Avengers", batch: "Batch D" },
+            { id: "ST013", name: "MUHAMMED MUSHAB", category: "Junior", team: "Fatih's Force", batch: "Batch D" },
+            { id: "ST014", name: "MASHHOORUL HAQ", category: "Junior", team: "Fatih's Force", batch: "Batch D" },
+            { id: "ST015", name: "MUHAMMED RAHOOF.P", category: "Junior", team: "Cordoba Knights", batch: "Batch E" },
+            { id: "ST016", name: "MUHAMMED SHIHAL.T", category: "Sub Junior", team: "Baghdad Gild", batch: "Batch E" },
+            { id: "ST017", name: "MUHAMMED SAEED.VK", category: "Sub Junior", team: "Samarqand Avengers", batch: "Batch E" },
+            { id: "ST018", name: "MUHAMMED HADHI.VP", category: "Sub Junior", team: "Samarqand Avengers", batch: "Batch E" },
+            { id: "ST019", name: "MUHAMMED SINAN.E", category: "Sub Junior", team: "Fatih's Force", batch: "Batch E" },
+            { id: "ST020", name: "MUHAMMED MARZOOQ.VK", category: "Sub Junior", team: "Cordoba Knights", batch: "Batch F" },
+            { id: "ST021", name: "MUHAMMED AZHARUDHEEN.N", category: "Sub Junior", team: "Baghdad Gild", batch: "Batch F" },
+            { id: "ST022", name: "MUHAMMED RAZI", category: "Sub Junior", team: "Baghdad Gild", batch: "Batch F" },
+            { id: "ST023", name: "MUHAMMED MISBAH.P", category: "Sub Junior", team: "Cordoba Knights", batch: "Batch F" },
+            { id: "ST024", name: "MUHHAMMED SINAN.EK", category: "Sub Junior", team: "Cordoba Knights", batch: "Batch F" },
+            { id: "ST025", name: "MUHAMMED RAFEEH", category: "Sub Junior", team: "Baghdad Gild", batch: "Batch F" },
+            { id: "ST026", name: "MUHAMMED NIZAMUDHEEN", category: "Sub Junior", team: "Cordoba Knights", batch: "Batch F" },
+            { id: "ST027", name: "MUHAMMED FUWAD", category: "Sub Junior", team: "Fatih's Force", batch: "Batch G" },
+            { id: "ST028", name: "MUHAMMED KHIDASH", category: "Sub Junior", team: "Cordoba Knights", batch: "Batch G" }
+        ];
+
+        // Sample Default Questions
+        let defaultQuestions = [
+            { id: 1, text: "ഇസ്ലാമിലെ ആദ്യത്തെ പള്ളി ഏതാണ്?", options: ["മസ്ജിദുൽ ഹറാം", "മസ്ജിദുന്നബവി", "മസ്ജിദുൽ ഖുബാ", "മസ്ജിദുൽ അഖ്സ"], answer: 2 },
+            { id: 2, text: "ഖുർആനിൽ എത്ര സൂറത്തുകൾ ഉണ്ട്?", options: ["114", "112", "110", "115"], answer: 0 },
+            { id: 3, text: "ഏറ്റവും വലിയ സൂറത്ത് ഏതാണ്?", options: ["ആലു ഇംറാൻ", "ബഖറ", "യാസീൻ", "കഹ്ഫ്"], answer: 1 },
+            { id: 4, text: "പ്രവാചകൻ (സ) ജനിച്ച വർഷം ഏത് പേരിലാണ് അറിയപ്പെടുന്നത്?", options: ["ആമുൽ ഹുസ്ൻ", "ആമുൽ ഫീൽ", "ആമുൽ ഫതഹ്", "ആമുൽ വുഫൂദ്"], answer: 1 },
+            { id: 5, text: "ഹിജ്റ വർഷം ആരംഭിക്കുന്നത് ഏത് മാസത്തിലാണ്?", options: ["റമദാൻ", "മുഹറം", "റബീഉൽ അവ്വൽ", "ദുൽഹിജ്ജ"], answer: 1 }
+        ];
+
+        // State Management
+        let currentStudent = null;
+        let questions = [];
+        let userAnswers = {};
+        let currentQuestionIdx = 0;
+        let timerInterval = null;
+        let timeRemaining = 300; // 5 mins
+        let warningsLeft = 1;
+
+        // Initialize App
+        window.onload = function() {
+            if(!localStorage.getItem("dars_questions")) {
+                localStorage.setItem("dars_questions", JSON.stringify(defaultQuestions));
+            }
+            if(!localStorage.getItem("dars_submissions")) {
+                localStorage.setItem("dars_submissions", JSON.stringify({}));
+            }
+            renderToppers();
+        };
+
+        // Student Login Function
+        function loginStudent() {
+            const inputId = document.getElementById("studentIdInput").value.trim().toUpperCase();
+            const errDiv = document.getElementById("loginError");
+            errDiv.classList.add("hide");
+
+            const student = studentsList.find(s => s.id === inputId);
+            if (!student) {
+                errDiv.innerText = "തെറ്റായ Student ID! ദയവായി ശരിയായ ഐഡി നൽകുക.";
+                errDiv.classList.remove("hide");
+                return;
+            }
+
+            // Check if already submitted
+            const submissions = JSON.parse(localStorage.getItem("dars_submissions") || "{}");
+            if (submissions[student.id]) {
+                errDiv.innerText = "നിങ്ങൾ ഈ ആഴ്ചയിലെ ക്വിസ് പൂർത്തിയാക്കിയതാണ്! വീണ്ടും എഴുതാൻ സാധിക്കില്ല.";
+                errDiv.classList.remove("hide");
+                return;
+            }
+
+            currentStudent = student;
+            startQuiz();
+        }
+
+        // Start Quiz Engine
+        function startQuiz() {
+            document.getElementById("loginSection").classList.add("hide");
+            document.getElementById("quizSection").classList.remove("hide");
+            document.getElementById("adminLoginNavBtn").classList.add("hide");
+
+            document.getElementById("quizStudentName").innerText = currentStudent.name;
+            document.getElementById("quizStudentMeta").innerText = `${currentStudent.id} | ${currentStudent.category} | ${currentStudent.team}`;
+
+            // Load & Randomize Questions
+            questions = JSON.parse(localStorage.getItem("dars_questions") || "[]");
+            questions = questions.sort(() => Math.random() - 0.5); // Anti-cheating randomization
+
+            currentQuestionIdx = 0;
+            userAnswers = {};
+            showQuestion();
+            startTimer();
+
+            // Anti-Cheat: Tab Switch Detection
+            window.onblur = function() {
+                if (currentStudent) {
+                    if (warningsLeft > 0) {
+                        document.getElementById("warningBanner").classList.remove("hide");
+                        warningsLeft--;
+                    } else {
+                        alert("ശ്രദ്ധിക്കുക! നിങ്ങൾ ആപ്പിൽ നിന്ന് മാറിയതിനാൽ ക്വിസ് ഓട്ടോ-സബ്മിറ്റ് ആകുന്നു.");
+                        submitQuiz(true);
+                    }
+                }
+            };
+        }
+
+        // Render Current Question
+        function showQuestion() {
+            const q = questions[currentQuestionIdx];
+            document.getElementById("questionTracker").innerText = `ചോദ്യം ${currentQuestionIdx + 1} / ${questions.length}`;
+            document.getElementById("questionText").innerText = `${currentQuestionIdx + 1}. ${q.text}`;
+
+            const optionsContainer = document.getElementById("optionsContainer");
+            optionsContainer.innerHTML = "";
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement("button");
+                btn.className = `option-btn ${userAnswers[q.id] === idx ? 'selected' : ''}`;
+                btn.innerText = `${String.fromCharCode(65 + idx)}) ${opt}`;
+                btn.onclick = () => selectOption(q.id, idx);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById("prevBtn").disabled = currentQuestionIdx === 0;
+            document.getElementById("nextBtn").innerText = currentQuestionIdx === questions.length - 1 ? "സബ്മിറ്റ് ചെയ്യുക" : "അടുത്ത ചോദ്യം";
+        }
+
+        function selectOption(qId, optIdx) {
+            userAnswers[qId] = optIdx;
+            showQuestion();
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIdx > 0) {
+                currentQuestionIdx--;
+                showQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIdx < questions.length - 1) {
+                currentQuestionIdx++;
+                showQuestion();
+            } else {
+                submitQuiz();
+            }
+        }
+
+        // Timer Function
+        function startTimer() {
+            const timeLimit = parseInt(localStorage.getItem("dars_timer") || "5");
+            timeRemaining = timeLimit * 60;
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                const mins = Math.floor(timeRemaining / 60);
+                const secs = timeRemaining % 60;
+                document.getElementById("timerBadge").innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("സമയം പൂർത്തിയായി! പരീക്ഷ സ്വയം സബ്മിറ്റ് ആകുന്നു.");
+                    submitQuiz(true);
+                }
+            }, 1000);
+        }
+
+        // Submit Quiz & Calculate Marks
+        function submitQuiz(autoSubmitted = false) {
+            clearInterval(timerInterval);
+            window.onblur = null;
+
+            let score = 0;
+            const pointsPerQ = 25 / (questions.length || 1);
+
+            questions.forEach(q => {
+                if (userAnswers[q.id] === q.answer) {
+                    score += pointsPerQ;
+                }
+            });
+
+            const timeSpent = (parseInt(localStorage.getItem("dars_timer") || "5") * 60) - timeRemaining;
+            const minsSpent = Math.floor(timeSpent / 60);
+            const secsSpent = timeSpent % 60;
+            const formattedTime = `${minsSpent}m ${secsSpent}s`;
+
+            // Save Result to LocalStorage
+            const submissions = JSON.parse(localStorage.getItem("dars_submissions") || "{}");
+            submissions[currentStudent.id] = {
+                studentId: currentStudent.id,
+                name: currentStudent.name,
+                category: currentStudent.category,
+                team: currentStudent.team,
+                batch: currentStudent.batch,
+                score: score.toFixed(1),
+                timeSpent: formattedTime,
+                timestamp: new Date().toLocaleString()
+            };
+            localStorage.setItem("dars_submissions", JSON.stringify(submissions));
+
+            // Webhook integration (Google Sheet Sync)
+            const webhookUrl = localStorage.getItem("dars_webhook");
+            if(webhookUrl) {
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(submissions[currentStudent.id])
+                }).catch(e => console.log("Webhook sync error:", e));
+            }
+
+            document.getElementById("quizSection").classList.add("hide");
+            document.getElementById("resultSection").classList.remove("hide");
+        }
+
+        // Admin Functions
+        function showAdminLoginModal() {
+            new bootstrap.Modal(document.getElementById('adminModal')).show();
+        }
+
+        function loginAdmin() {
+            const u = document.getElementById("adminUser").value;
+            const p = document.getElementById("adminPass").value;
+
+            if (u === "admin" && p === "admin123") {
+                bootstrap.Modal.getInstance(document.getElementById('adminModal')).hide();
+                document.getElementById("loginSection").classList.add("hide");
+                document.getElementById("adminSection").classList.remove("hide");
+                renderAdminResults();
+            } else {
+                document.getElementById("adminLoginError").innerText = "തെറ്റായ അഡ്മിൻ വിവരങ്ങൾ!";
+                document.getElementById("adminLoginError").classList.remove("hide");
+            }
+        }
+
+        function renderAdminResults() {
+            const filter = document.getElementById("filterCategory").value;
+            const submissions = JSON.parse(localStorage.getItem("dars_submissions") || "{}");
+            const tbody = document.getElementById("resultsTableBody");
+            tbody.innerHTML = "";
+
+            Object.values(submissions).forEach(sub => {
+                if (filter === "ALL" || sub.category === filter) {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td><strong>${sub.studentId}</strong></td>
+                        <td>${sub.name}</td>
+                        <td><span class="badge-cat">${sub.category}</span></td>
+                        <td>${sub.team}</td>
+                        <td>${sub.batch}</td>
+                        <td><strong class="text-success">${sub.score} / 25</strong></td>
+                        <td>${sub.timeSpent}</td>
+                        <td><span class="badge bg-success">Submitted</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+
+        function processBulkImport() {
+            const rawText = document.getElementById("bulkImportText").value.trim();
+            if(!rawText) return alert("ടെക്സ്റ്റ് ഇൻപുട്ട് നൽകുക!");
+
+            // Basic parsing logic
+            const blocks = rawText.split(/\n\s*\n/);
+            let importedQs = [];
+
+            blocks.forEach((block, idx) => {
+                const lines = block.split('\n').map(l => l.trim()).filter(l => l);
+                if(lines.length >= 5) {
+                    const qText = lines[0].replace(/^\d+[\.\)]\s*/, '');
+                    const opts = lines.slice(1, 5).map(o => o.replace(/^[A-D][\.\)]\s*/, ''));
+                    const ansLine = lines.find(l => l.toLowerCase().startsWith('ans:'));
+                    let ansIdx = 0;
+                    if(ansLine) {
+                        const char = ansLine.split(':')[1].trim().toUpperCase();
+                        ansIdx = char.charCodeAt(0) - 65;
+                    }
+                    importedQs.push({ id: idx + 1, text: qText, options: opts, answer: ansIdx });
+                }
+            });
+
+            if(importedQs.length > 0) {
+                localStorage.setItem("dars_questions", JSON.stringify(importedQs));
+                alert(`${importedQs.length} ചോദ്യങ്ങൾ വിജയികരമായി അപ്‌ഡേറ്റ് ചെയ്തു!`);
+                document.getElementById("bulkImportText").value = "";
+            } else {
+                alert("ചോദ്യങ്ങളുടെ ഫോർമാറ്റ് കൃത്യമല്ല. ദയവായി പരിശോധിക്കുക.");
+            }
+        }
+
+        function saveAdminSettings() {
+            const timer = document.getElementById("settingTimeLimit").value;
+            const webhook = document.getElementById("settingWebhookUrl").value;
+            localStorage.setItem("dars_timer", timer);
+            localStorage.setItem("dars_webhook", webhook);
+            alert("Settings Saved Successfully!");
+        }
+
+        function clearSubmissions() {
+            if(confirm("ശ്രദ്ധിക്കുക: നിലവിലുള്ള എല്ലാ കുട്ടികളുടെയും മാർക്കുകൾ ക്ലിയർ ചെയ്ത് പുതിയ ക്വിസിന് തുടക്കമിടണോ?")) {
+                localStorage.setItem("dars_submissions", JSON.stringify({}));
+                renderAdminResults();
+                renderToppers();
+                alert("സബ്മിഷൻസ് ക്ലിയർ ചെയ്തു!");
+            }
+        }
+
+        // Render Toppers Card on Login Page
+        function renderToppers() {
+            const submissions = JSON.parse(localStorage.getItem("dars_submissions") || "{}");
+            const subArray = Object.values(submissions);
+
+            const categories = ["Senior", "Junior", "Sub Junior"];
+            const container = document.getElementById("toppersContainer");
+            container.innerHTML = "";
+
+            categories.forEach(cat => {
+                const catSubs = subArray.filter(s => s.category === cat).sort((a,b) => parseFloat(b.score) - parseFloat(a.score));
+                const top = catSubs[0];
+
+                const col = document.createElement("div");
+                col.className = "col-12";
+                col.innerHTML = `
+                    <div class="p-2 card-custom topper-card d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="fw-bold text-uppercase text-secondary">${cat} Topper</small>
+                            <h6 class="mb-0 fw-bold">${top ? top.name : 'വിവരങ്ങൾ ലഭ്യമല്ല'}</h6>
+                        </div>
+                        <span class="badge bg-warning text-dark fs-6">${top ? top.score + ' Pts' : '0 Pts'}</span>
+                    </div>
+                `;
+                container.appendChild(col);
+            });
+        }
+
+        function logout() {
+            currentStudent = null;
+            location.reload();
+        }
+    </script>
+</body>
+</html>
